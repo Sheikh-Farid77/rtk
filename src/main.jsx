@@ -5,7 +5,13 @@ import './index.css'
 import App from './App.jsx'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
-const queryClint = new QueryClient();
+const queryClint = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5000,
+    }
+  }
+});
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

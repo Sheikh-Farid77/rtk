@@ -8,7 +8,7 @@ const retrieveProducts = async ({queryKey}) => {
   return response.data;
 };
 
-export default function ProductList() {
+export default function ProductList({onGetId}) {
   const {
     data: products,
     error,
@@ -17,6 +17,7 @@ export default function ProductList() {
     queryKey: ["products"],
     queryFn: retrieveProducts,
     retry: false,
+ 
   });
   console.log(products);
   if (isLoading) return <div>Fetching products.....</div>;
@@ -38,6 +39,7 @@ export default function ProductList() {
                 alt={product.title}
               />
               <p className="text-xl my-3">{product.title}</p>
+              <button className="border rounded-xl bg-amber-950 text-white px-4 py-2 cursor-pointer" onClick={()=> onGetId(product.id)}>Details</button>
             </li>
           ))}
       </ul>
