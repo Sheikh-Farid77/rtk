@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useState } from "react";
+import useDebounce from "./useDebounce";
 
 const retrieveProducts = async ({queryKey}) => {
   
@@ -10,6 +11,8 @@ const retrieveProducts = async ({queryKey}) => {
 };
 
 export default function ProductList({onGetId}) {
+  const [searchQuery, setSearchQuery] = useState('')
+ 
   const queryClient = useQueryClient();
   
   const [page, setPage] = useState(1)
@@ -33,16 +36,42 @@ export default function ProductList({onGetId}) {
     
   });
 
+  const debounceValue = useDebounce(searchQuery, 500)
+
+   const filterBySearch = (product) => {
+    if (searchQuery !== "") {
+      return product?.title
+        .toLowerCase()
+        .includes(debounceValue.trim().toLowerCase());
+    }
+    return true;
+  };
+
+
+
+  const handleChange = (e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+  
+
+  }
+
  
   if (isLoading) return <div>Fetching products.....</div>;
   if (error) return <p>{error.message}</p>;
+  if(products.length < 1) return <p>Products Not Available</p>
 
   return (
     <div className="flex flex-col justify-center items-center w-3/5">
       <h2 className="text-3xl my-2">Product List</h2>
+      <div>
+        <input className="border px-4 py-1" onChange={handleChange} type="text" name="" id="" />
+      </div>
       <ul className="flex flex-wrap justify-center items-center">
         {products.data &&
-          products.data.map((product) => (
+          products.data.
+          filter(filterBySearch)
+          .map((product) => (
             <li
               key={product.id}
               className="flex flex-col items-center m-2 border rounded-sm"
