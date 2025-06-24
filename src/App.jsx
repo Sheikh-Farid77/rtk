@@ -1,6 +1,7 @@
 import { useState } from "react";
 import ProductDetails from "./components/ProductDetails";
 import ProductList from "./components/ProductList";
+import AddProduct from "./components/AddProduct";
 
 function App() {
 
@@ -11,6 +12,7 @@ function App() {
   }
   return (
     <div className="flex m-2">
+      <AddProduct />
       <ProductList onGetId={handleGetDetailsId} />
       {
         id && <ProductDetails id={id} />
