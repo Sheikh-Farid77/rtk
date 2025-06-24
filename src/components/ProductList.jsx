@@ -1,24 +1,39 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
+import { useState } from "react";
 
 const retrieveProducts = async ({queryKey}) => {
   
-  const response = await axios.get(`http://localhost:8000/${queryKey[0]}`);
+  const response = await axios.get(`http://localhost:8000/products?_page=${queryKey[1].page}&_per_page=6`);
 
   return response.data;
 };
 
 export default function ProductList({onGetId}) {
+  const queryClient = useQueryClient();
+  
+  const [page, setPage] = useState(1)
   const {
     data: products,
     error,
     isLoading,
   } = useQuery({
-    queryKey: ["products"],
+    queryKey: ["products", {page}],
     queryFn: retrieveProducts,
     retry: false,
  
   });
+
+    const mutation = useMutation({
+    mutationFn: (id) =>
+      axios.delete(`http://localhost:8000/products/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["products"]);
+    },
+    
+  });
+
+ 
   if (isLoading) return <div>Fetching products.....</div>;
   if (error) return <p>{error.message}</p>;
 
@@ -26,8 +41,8 @@ export default function ProductList({onGetId}) {
     <div className="flex flex-col justify-center items-center w-3/5">
       <h2 className="text-3xl my-2">Product List</h2>
       <ul className="flex flex-wrap justify-center items-center">
-        {products &&
-          products.map((product) => (
+        {products.data &&
+          products.data.map((product) => (
             <li
               key={product.id}
               className="flex flex-col items-center m-2 border rounded-sm"
@@ -39,9 +54,22 @@ export default function ProductList({onGetId}) {
               />
               <p className="text-xl my-3">{product.title}</p>
               <button className="border rounded-xl bg-amber-950 text-white px-4 py-1 cursor-pointer" onClick={()=> onGetId(product.id)}>Details</button>
+              <button onClick={() => mutation.mutate(product.id)} className="border rounded-xl bg-red-400 text-white px-4 py-1 cursor-pointer" >Delete</button>
             </li>
           ))}
       </ul>
+      <div>
+        {
+          products.prev && (
+            <button onClick={() => setPage(products.prev)} className="border bg-gray-500 text-white px-4 py-1 cursor-pointer">prev</button>
+          )
+        }
+        {
+           products.next && (
+            <button onClick={() => setPage(products.next)} className="border bg-gray-500 text-white px-4 py-1 cursor-pointer">next</button>
+          )
+        }
+      </div>
     </div>
   );
 }
